@@ -24,7 +24,7 @@ const auth = (req, res, next) => {
         error.statusCode = 401;
         throw error;
     }
-    req.userId = decodedToken.adminName;
+    req.adminName = decodedToken.adminName;
     next();
 };
 exports.default = auth;

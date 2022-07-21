@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const schema = mongoose_1.default.Schema;
-const userSchema = new mongoose_1.Schema({
+const userSchema = new schema({
     email: {
         type: String,
         required: true
@@ -39,7 +39,7 @@ const userSchema = new mongoose_1.Schema({
         required: true
     },
     cart: {
-        item: [
+        items: [
             {
                 productId: {
                     type: mongoose_1.Schema.Types.ObjectId,
@@ -47,10 +47,39 @@ const userSchema = new mongoose_1.Schema({
                     required: true
                 },
                 quantity: {
-                    type: Number
+                    type: Number,
+                    required: true
                 }
             }
         ]
     }
-});
+}, { timestamps: true });
+userSchema.methods.updateCart = function (cart) {
+    let updatedCartItem = [];
+    cart.forEach((item) => {
+        updatedCartItem.push({
+            productId: new Object(item.productId),
+            quantity: item.quantity
+        });
+    });
+    this.cart = { items: updatedCartItem };
+    return this.save();
+};
+userSchema.methods.addToCart = function (product) {
+    const updatedCartItem = [...this.cart.items];
+    updatedCartItem.push(new Object(product._Id));
+    this.cart = { items: updatedCartItem };
+    return this.save();
+};
+userSchema.methods.removeFromCart = function (productId) {
+    const updatedCartItem = this.cart.items.filter((item) => {
+        return item.productId.toString() !== productId.toString();
+    });
+    this.cart = { items: updatedCartItem };
+    return this.save();
+};
+userSchema.methods.clearCart = function (productId) {
+    this.cart = { items: [] };
+    return this.save();
+};
 exports.default = mongoose_1.default.model('User', userSchema);

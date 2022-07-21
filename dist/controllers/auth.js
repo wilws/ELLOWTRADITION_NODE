@@ -12,21 +12,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logout = exports.login = exports.createUser = void 0;
+exports.isLogin = exports.logout = exports.login = exports.createUser = void 0;
+const express_validator_1 = require("express-validator");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const user_1 = __importDefault(require("../models/user"));
 const createUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const email = req.body.email;
-    const username = req.body.username;
-    const password = req.body.password;
-    const hashedPw = yield bcryptjs_1.default.hash(password, 12);
-    const newUser = new user_1.default({
-        username: username,
-        email: email,
-        password: hashedPw
-    });
     try {
+        const errors = (0, express_validator_1.validationResult)(req); //  store error ,if any , during route’s validation 
+        if (!errors.isEmpty()) { // if error happens in route’s validation
+            const error = new Error('Validation Failed'); // set error message
+            error.statusCode = 422; // give error status code
+            error.data = errors.array(); //keep error information from validationResult
+            throw error;
+        }
+        const email = req.body.email;
+        const username = req.body.username;
+        const password = req.body.password;
+        const hashedPw = yield bcryptjs_1.default.hash(password, 12);
+        const newUser = new user_1.default({
+            username: username,
+            email: email,
+            password: hashedPw
+        });
         yield newUser.save();
         res.status(200).json({
             message: "user created"
@@ -41,12 +49,19 @@ const createUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.createUser = createUser;
 const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const email = req.body.email;
-    const password = req.body.password;
     try {
+        const errors = (0, express_validator_1.validationResult)(req); //  store error ,if any , during route’s validation 
+        if (!errors.isEmpty()) { // if error happens in route’s validation
+            const error = new Error('Validation Failed'); // set error message
+            error.statusCode = 422; // give error status code
+            error.data = errors.array(); //keep error information from validationResult
+            throw error;
+        }
+        const email = req.body.email;
+        const password = req.body.password;
         const loadedUser = yield user_1.default.findOne({ email: email });
         if (!loadedUser) {
-            const error = new Error('No such admin');
+            const error = new Error('No Such User');
             error.statusCode = 401;
             throw error;
         }
@@ -64,6 +79,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         res.status(200).json({
             token: token,
             username: loadedUser.username,
+            email: loadedUser.email,
             message: "Login Successful"
         });
     }
@@ -76,11 +92,12 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
 });
 exports.login = login;
 const logout = (req, res, next) => {
-    if (!req.cookies.jwt) {
-        const error = new Error('LogOut Error');
-        error.statusCode = 406;
-        throw error;
-    }
+    //  SHOULD NOT CHECK IF JWT EXIST FOR LOGOUT. JUST LOGOUT
+    // if(!req.cookies.jwt){
+    //     const error:any = new Error('No Token in Cookies');
+    //     error.statusCode = 406;
+    //     throw error;
+    // }
     try {
         res.cookie('jwt', '', { maxAge: 1 });
         res.status(200).json({
@@ -95,3 +112,9 @@ const logout = (req, res, next) => {
     }
 };
 exports.logout = logout;
+const isLogin = (req, res, next) => {
+    res.status(200).json({
+        message: "Login Valid"
+    });
+};
+exports.isLogin = isLogin;

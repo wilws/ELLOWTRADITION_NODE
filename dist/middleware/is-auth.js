@@ -16,8 +16,9 @@ const auth = (req, res, next) => {
         decodedToken = jsonwebtoken_1.default.verify(token, 'Secret');
     }
     catch (err) {
-        err.statusCode = 500;
-        throw err;
+        const error = new Error('Token Invalid. May be expired');
+        err.statusCode = 401;
+        throw error;
     }
     if (!decodedToken) {
         const error = new Error('Not authenticated.');

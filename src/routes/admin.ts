@@ -10,7 +10,7 @@ const router = Router();
 // ***  API about the admin's role  *** //
 
 // POST /admin/create
-router.post('/create', isAuthAdmin, adminController.createAdmin);
+router.post('/create',isAuthAdmin, adminController.createAdmin);
 
 // POST /admin/login
 router.post('/login', adminController.login);
@@ -26,13 +26,14 @@ router.post('/logout',isAuthAdmin,authController.logout);
 // ***  API about the admin's function  *** //
 
 // POST /admin/add-product
-router.post('/add-product',isAuthAdmin, adminController.addProduct);
+router.post('/add-product', adminController.addProduct);
 
 // GET /admin/get-products
 router.get('/get-products', isAuthAdmin, adminController.getProducts);
 
 // GET /admin/get-product/{productId}
 router.get('/get-product/:productId',isAuthAdmin,  adminController.getProduct);
+
 
 // PUT /admin/edit-product/{productId}
 router.put('/edit-product/:productId', isAuthAdmin, adminController.editProduct);

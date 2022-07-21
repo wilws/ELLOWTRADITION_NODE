@@ -22,8 +22,9 @@ const auth:RequestHandler = (req, res, next) =>{
     try{
         decodedToken = jwt.verify(token, 'Secret')
     }catch(err:any){
-        err.statusCode = 500;
-        throw err;
+        const error:any = new Error('Token Invalid. May be expired');
+        err.statusCode = 401;
+        throw error;
     }
 
     if(!decodedToken){

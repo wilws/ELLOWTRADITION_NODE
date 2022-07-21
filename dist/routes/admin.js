@@ -19,7 +19,7 @@ router.post('/logout', is_authAdmin_1.default, authController.logout);
 // router.post('reset',adminController.reset)
 // ***  API about the admin's function  *** //
 // POST /admin/add-product
-router.post('/add-product', is_authAdmin_1.default, adminController.addProduct);
+router.post('/add-product', adminController.addProduct);
 // GET /admin/get-products
 router.get('/get-products', is_authAdmin_1.default, adminController.getProducts);
 // GET /admin/get-product/{productId}

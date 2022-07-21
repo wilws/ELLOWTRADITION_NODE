@@ -8,23 +8,27 @@ import jwt from "jsonwebtoken";
 import User from '../models/user';
 
 
+
 export const createUser:RequestHandler = async (req, res, next) =>{
-
-    
-    const email = req.body.email;
-    const username = req.body.username;
-    const password = req.body.password;
-
-    const hashedPw = await bcrypt.hash(password,12);
-
-    const newUser = new User ({
-        username:username,
-        email:email,
-        password:hashedPw
-    })
-
     try{
+        const errors = validationResult(req)                        //  store error ,if any , during route’s validation 
+        if(!errors.isEmpty()){							        // if error happens in route’s validation
+            const error:any = new Error('Validation Failed');	// set error message
+            error.statusCode = 422;						        // give error status code
+            error.data = errors.array();                  	    //keep error information from validationResult
+            throw error;							
+         }
 
+        const email = req.body.email;
+        const username = req.body.username;
+        const password = req.body.password;
+        const hashedPw = await bcrypt.hash(password,12);
+
+        const newUser = new User ({
+            username:username,
+            email:email,
+            password:hashedPw
+        })
         await newUser.save()
         res.status(200).json({
             message: "user created"
@@ -41,13 +45,21 @@ export const createUser:RequestHandler = async (req, res, next) =>{
 }
 
 export const login:RequestHandler = async (req, res, next) =>{
-    const email = req.body.email;
-    const password = req.body.password;
     try {
+        const errors:any = validationResult(req)                    //  store error ,if any , during route’s validation 
+        if(!errors.isEmpty()){							        // if error happens in route’s validation
+            const error:any = new Error('Validation Failed');	// set error message
+            error.statusCode = 422;						        // give error status code
+            error.data = errors.array();                  	    //keep error information from validationResult
+            throw error;							
+         }
+     
+        const email = req.body.email;
+        const password = req.body.password;
         const loadedUser = await User.findOne({email:email});
         
         if (!loadedUser){
-            const error:any = new Error('No such admin');
+            const error:any = new Error('No Such User');
             error.statusCode = 401;
             throw error;
         } 
@@ -69,10 +81,10 @@ export const login:RequestHandler = async (req, res, next) =>{
         );
 
         res.cookie('jwt',token,{httpOnly: true, maxAge: 86400000});
-
         res.status(200).json({
             token:token,
             username: loadedUser.username,
+            email: loadedUser.email,
             message:"Login Successful"
         })
 
@@ -86,18 +98,21 @@ export const login:RequestHandler = async (req, res, next) =>{
 
 
 export const logout:RequestHandler = (req, res, next) =>{
-
-    if(!req.cookies.jwt){
-        const error:any = new Error('LogOut Error');
-        error.statusCode = 406;
-        throw error;
-    }
+  
+    
+    //  SHOULD NOT CHECK IF JWT EXIST FOR LOGOUT. JUST LOGOUT
+    // if(!req.cookies.jwt){
+    //     const error:any = new Error('No Token in Cookies');
+    //     error.statusCode = 406;
+    //     throw error;
+    // }
  
     try{
         res.cookie('jwt','',{maxAge:1});
         res.status(200).json({
             message:"Logout Successful"
         })
+      
 
     } catch(err:any) {
         if(!err.statusCode){
@@ -106,4 +121,11 @@ export const logout:RequestHandler = (req, res, next) =>{
         next(err);
     }
 
+}
+
+export const isLogin:RequestHandler = (req, res, next) =>{
+
+    res.status(200).json({
+        message:"Login Valid"
+    })
 }
