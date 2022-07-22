@@ -137,15 +137,23 @@ export const updateCart:RequestHandler = async(req,res, next) =>{
 export const checkout:RequestHandler = async (req, res, next) =>{
 
     console.log("enter to checkout ")
-    let total = 0;
-    const user = await User.findById(req.userId).populate('cart.items.productId');
-    const cartItem = user.cart.items;
+    const multiplier = 100;
+    const root = `http://${req.headers.host}`;
 
+    const user = await User.findById(req.userId).populate('cart.items.productId');   // Get cart details
+    const cartItem = user.cart.items;  
+
+    const email = user.email;           // get user email
+    const tax_rates = 0.15;             // set tax rate
+    const shipping_charge = 50;         // set Shipping charge
+    
+    let productTotal = 0;               // the sum of product ( exclude vat and shipping)
     cartItem.forEach((item:any) => {
-        total += +item.quantity * +item.productId.price
+        productTotal += +item.quantity * +item.productId.price  * multiplier
     });
 
 
+    // Add cart items
     const line_items = cartItem.map((item:any) => {
         return { 
             quantity: item.quantity,
@@ -153,13 +161,33 @@ export const checkout:RequestHandler = async (req, res, next) =>{
                 currency:"USD",
                 product_data:{
                     name: item.productId.name,
-                    description: item.productId.description ,
-                    images: [item.productId.image1],
+                    // description: item.productId.description ,
+                    images: [`${root}/image/${item.productId.imageUrl1}`]
                 },
-                unit_amount_decimal:+item.productId.price,
+                unit_amount_decimal:+item.productId.price * multiplier,
             }
         };
       })
+
+      // Add Shipping
+      line_items.push({
+            quantity: 1,
+            price_data:{
+                currency:"USD",
+                product_data:{ name: "Shipping Charge"},
+                unit_amount_decimal:shipping_charge * multiplier
+            },
+      });
+
+      // Add VAT   
+      line_items.push({
+            quantity: 1,
+            price_data:{
+                currency:"USD",
+                product_data:{name: "VAT"},
+                unit_amount_decimal:productTotal * tax_rates 
+            }
+        });
 
     try{
         const session = await stripe.checkout.sessions.create({
@@ -167,6 +195,8 @@ export const checkout:RequestHandler = async (req, res, next) =>{
             cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel',
             line_items: line_items,
             mode: 'payment',
+            customer_email:email,
+           
         });
         
         res.status(200).json({
@@ -184,39 +214,46 @@ export const checkout:RequestHandler = async (req, res, next) =>{
 
 export const checkOutSuccess:RequestHandler = async (req,res,next) => {
 
-    let total = 0;
-    const user = await User.findById(req.userId).populate('cart.items.productId');
-    const cartItem = user.cart.items;
+
+    const user = await User.findById(req.userId).populate('cart.items.productId');   // Get cart details
+    const cartItem = user.cart.items;  
 
     const products:any = [];
-
+    const tax_rates = 0.15;             // set tax rate
+    const shipping_charge = 50;         // set Shipping charge
+    
+    let productTotal = 0;               // the sum of product ( exclude vat and shipping)
     cartItem.forEach((item:any) => {
 
-        let subTotal = +item.quantity * +item.productId.price;
-        total += subTotal;
-
+        const subTotal = item.quantity * +item.productId.price.toString();
+        productTotal += subTotal;      
         products.push( {
             productId:item.productId,
             name: item.productId.name,
-            price : +item.productId.price,
             quantity : +item.quantity,
+            price : +item.productId.price,
             subTotal : subTotal
         })
     });
 
+
+    const vat = productTotal * tax_rates;
+    const shipping = shipping_charge;
+    const total = vat + shipping + productTotal;    // Total amount that the customer paid
+
     try{
 
-      
         let invoiceId:String = "";
-
         const order = await new Order({
+            products: products,
+            vat:vat,
+            shipping:shipping,
+            productTotal:productTotal,
+            total:total,
             user:{
                 email: user.email,
                 userId: user,
-            },
-            products: products,
-            total:total,
-     
+            }
         }).save(async function(err:any,invoice:any){
         
             if (err) {
@@ -224,11 +261,10 @@ export const checkOutSuccess:RequestHandler = async (req,res,next) => {
             } else{
                 invoiceId = await invoice._id.toString();
                 await user.clearCart();
-                return res.redirect(`http://localhost:3000/invoice/${invoiceId}?checkout=true`)
+                return res.redirect(`http://localhost:3000/invoice/${invoiceId}?checkout=true`);
             }
         })
          
-    
     } catch(err:any){
         if(!err.statusCode){
             err.statusCode = 500;
@@ -238,27 +274,7 @@ export const checkOutSuccess:RequestHandler = async (req,res,next) => {
 }
 
 export const checkOutCancel:RequestHandler = (req,res,next) => {
-
-    console.log("in checkout cancel page")
-
-
-    const resData = req.body;
-
-
-
-
-    // res.setHeader('Content-Type','text/html');                                                       // 收到request 後， 回應返 HTML lanaguage我
-    // res.write('<html>');
-    // res.write('<header><title>Checkout Cancel Page</title></head>');
-    // res.write('<body><h1>Hello from my Node.js Server</h1></body>');
-    // res.write('</html>');
-
-    res.status(401).json({
-        message : "Checkout Cancel",
-        session : resData,
-    })
-
-    // res.end()
+    res.redirect(`http://localhost:3000/cart?checkout=cancel`);
 }
 
 

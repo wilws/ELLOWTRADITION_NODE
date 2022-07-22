@@ -11,6 +11,18 @@ const order = new schema({
             subTotal:{  type: Number, required:true }
         }
     ],
+    vat:{ 
+        type: Number, 
+        required:true
+    },
+    shipping:{ 
+        type: Number, 
+        required:true
+    },
+    productTotal:{ 
+        type: Number, 
+        required:true
+    },
     total:{
         type:Number,
         required: true

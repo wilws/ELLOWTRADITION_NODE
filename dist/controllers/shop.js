@@ -120,25 +120,50 @@ exports.updateCart = updateCart;
 // }
 const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("enter to checkout ");
-    let total = 0;
-    const user = yield user_1.default.findById(req.userId).populate('cart.items.productId');
+    const multiplier = 100;
+    const root = `http://${req.headers.host}`;
+    const user = yield user_1.default.findById(req.userId).populate('cart.items.productId'); // Get cart details
     const cartItem = user.cart.items;
+    const email = user.email; // get user email
+    const tax_rates = 0.15; // set tax rate
+    const shipping_charge = 50; // set Shipping charge
+    let productTotal = 0; // the sum of product ( exclude vat and shipping)
     cartItem.forEach((item) => {
-        total += +item.quantity * +item.productId.price;
+        productTotal += +item.quantity * +item.productId.price * multiplier;
     });
+    // Add cart items
     const line_items = cartItem.map((item) => {
+        console.log(`${root}/image/${item.productId.imageUrl1}`);
         return {
             quantity: item.quantity,
             price_data: {
                 currency: "USD",
                 product_data: {
                     name: item.productId.name,
-                    description: item.productId.description,
-                    images: [item.productId.image1],
+                    // description: item.productId.description ,
+                    images: [`${root}/image/${item.productId.imageUrl1}`]
                 },
-                unit_amount_decimal: +item.productId.price,
+                unit_amount_decimal: +item.productId.price * multiplier,
             }
         };
+    });
+    // Add Shipping
+    line_items.push({
+        quantity: 1,
+        price_data: {
+            currency: "USD",
+            product_data: { name: "Shipping Charge" },
+            unit_amount_decimal: shipping_charge * multiplier
+        },
+    });
+    // Add VAT   
+    line_items.push({
+        quantity: 1,
+        price_data: {
+            currency: "USD",
+            product_data: { name: "VAT" },
+            unit_amount_decimal: productTotal * tax_rates
+        }
     });
     try {
         const session = yield stripe.checkout.sessions.create({
@@ -146,6 +171,7 @@ const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
             cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel',
             line_items: line_items,
             mode: 'payment',
+            customer_email: email,
         });
         res.status(200).json({
             message: "Session Created",
@@ -161,30 +187,38 @@ const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.checkout = checkout;
 const checkOutSuccess = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    let total = 0;
-    const user = yield user_1.default.findById(req.userId).populate('cart.items.productId');
+    const user = yield user_1.default.findById(req.userId).populate('cart.items.productId'); // Get cart details
     const cartItem = user.cart.items;
     const products = [];
+    const tax_rates = 0.15; // set tax rate
+    const shipping_charge = 50; // set Shipping charge
+    let productTotal = 0; // the sum of product ( exclude vat and shipping)
     cartItem.forEach((item) => {
-        let subTotal = +item.quantity * +item.productId.price;
-        total += subTotal;
+        const subTotal = item.quantity * +item.productId.price.toString();
+        productTotal += subTotal;
         products.push({
             productId: item.productId,
             name: item.productId.name,
-            price: +item.productId.price,
             quantity: +item.quantity,
+            price: +item.productId.price,
             subTotal: subTotal
         });
     });
+    const vat = productTotal * tax_rates;
+    const shipping = shipping_charge;
+    const total = vat + shipping + productTotal; // Total amount that the customer paid
     try {
         let invoiceId = "";
         const order = yield new order_1.default({
+            products: products,
+            vat: vat,
+            shipping: shipping,
+            productTotal: productTotal,
+            total: total,
             user: {
                 email: user.email,
                 userId: user,
-            },
-            products: products,
-            total: total,
+            }
         }).save(function (err, invoice) {
             return __awaiter(this, void 0, void 0, function* () {
                 if (err) {
@@ -207,18 +241,7 @@ const checkOutSuccess = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.checkOutSuccess = checkOutSuccess;
 const checkOutCancel = (req, res, next) => {
-    console.log("in checkout cancel page");
-    const resData = req.body;
-    // res.setHeader('Content-Type','text/html');                                                       // 收到request 後， 回應返 HTML lanaguage我
-    // res.write('<html>');
-    // res.write('<header><title>Checkout Cancel Page</title></head>');
-    // res.write('<body><h1>Hello from my Node.js Server</h1></body>');
-    // res.write('</html>');
-    res.status(401).json({
-        message: "Checkout Cancel",
-        session: resData,
-    });
-    // res.end()
+    res.redirect(`http://localhost:3000/cart?checkout=cancel`);
 };
 exports.checkOutCancel = checkOutCancel;
 const getInvoices = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
