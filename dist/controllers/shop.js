@@ -18,7 +18,7 @@ const user_1 = __importDefault(require("../models/user"));
 const order_1 = __importDefault(require("../models/order"));
 const stripe = require('stripe')('sk_test_KfraBA0PbL5kXuWLz0ac2CgD00pq5g0wA0');
 const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    let totalItems;
+    // let totalItems:number;
     let root = `http://${req.headers.host}`;
     try {
         const totalItems = yield product_1.default.find().countDocuments();
@@ -116,12 +116,17 @@ const updateCart = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.updateCart = updateCart;
-// export const createInvoice:RequestHandler = (req, res, next) =>{
-// }
 const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("enter to checkout ");
     const multiplier = 100;
-    const root = `http://${req.headers.host}`;
+    const protocol = req.protocol;
+    const root = req.headers.host;
+    const originURL = req.get('origin');
+    console.log("originURL: ", originURL);
+    const success_url = `${protocol}://${root}/checkout/success?originUrl=${originURL}`;
+    const cancel_url = `${protocol}://${root}/checkout/cancel?originUrl=${originURL}`;
+    console.log(success_url);
+    console.log(cancel_url);
     const user = yield user_1.default.findById(req.userId).populate('cart.items.productId'); // Get cart details
     const cartItem = user.cart.items;
     const email = user.email; // get user email
@@ -133,7 +138,6 @@ const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
     });
     // Add cart items
     const line_items = cartItem.map((item) => {
-        console.log(`${root}/image/${item.productId.imageUrl1}`);
         return {
             quantity: item.quantity,
             price_data: {
@@ -141,7 +145,7 @@ const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                 product_data: {
                     name: item.productId.name,
                     // description: item.productId.description ,
-                    images: [`${root}/image/${item.productId.imageUrl1}`]
+                    // images: [`${root}/image/${item.productId.imageUrl1}`]
                 },
                 unit_amount_decimal: +item.productId.price * multiplier,
             }
@@ -167,8 +171,10 @@ const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
     });
     try {
         const session = yield stripe.checkout.sessions.create({
-            success_url: req.protocol + '://' + req.get('host') + '/checkout/success',
-            cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel',
+            success_url: success_url,
+            cancel_url: cancel_url,
+            // success_url: req.protocol + '://' + req.get('host') + '/checkout/success',
+            // cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel',
             line_items: line_items,
             mode: 'payment',
             customer_email: email,
@@ -187,6 +193,7 @@ const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.checkout = checkout;
 const checkOutSuccess = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const originURL = req.query.originUrl; // Get client side URL
     const user = yield user_1.default.findById(req.userId).populate('cart.items.productId'); // Get cart details
     const cartItem = user.cart.items;
     const products = [];
@@ -227,7 +234,7 @@ const checkOutSuccess = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 else {
                     invoiceId = yield invoice._id.toString();
                     yield user.clearCart();
-                    return res.redirect(`http://localhost:3000/invoice/${invoiceId}?checkout=true`);
+                    return res.redirect(`${originURL}/invoice/${invoiceId}?checkout=true`);
                 }
             });
         });
@@ -241,7 +248,8 @@ const checkOutSuccess = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.checkOutSuccess = checkOutSuccess;
 const checkOutCancel = (req, res, next) => {
-    res.redirect(`http://localhost:3000/cart?checkout=cancel`);
+    const originURL = req.query.originUrl;
+    res.redirect(`${originURL}/cart?checkout=cancel`);
 };
 exports.checkOutCancel = checkOutCancel;
 const getInvoices = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

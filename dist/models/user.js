@@ -38,6 +38,10 @@ const userSchema = new schema({
         type: String,
         required: true
     },
+    address: {
+        type: String,
+        required: true
+    },
     cart: {
         items: [
             {
@@ -65,19 +69,19 @@ userSchema.methods.updateCart = function (cart) {
     this.cart = { items: updatedCartItem };
     return this.save();
 };
-userSchema.methods.addToCart = function (product) {
-    const updatedCartItem = [...this.cart.items];
-    updatedCartItem.push(new Object(product._Id));
-    this.cart = { items: updatedCartItem };
-    return this.save();
-};
-userSchema.methods.removeFromCart = function (productId) {
-    const updatedCartItem = this.cart.items.filter((item) => {
-        return item.productId.toString() !== productId.toString();
-    });
-    this.cart = { items: updatedCartItem };
-    return this.save();
-};
+// userSchema.methods.addToCart = function(product:any){
+//     const updatedCartItem = [...this.cart.items];
+//     updatedCartItem.push(new Object(product._Id));
+//     this.cart = { items : updatedCartItem };
+//     return this.save()
+// }
+// userSchema.methods.removeFromCart = function(productId:String){
+//     const updatedCartItem = this.cart.items.filter((item:any) => {
+//         return item.productId.toString() !== productId.toString();
+//     } );
+//     this.cart = { items : updatedCartItem };
+//     return this.save()
+// }
 userSchema.methods.clearCart = function (productId) {
     this.cart = { items: [] };
     return this.save();

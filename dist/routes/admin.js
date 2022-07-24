@@ -8,7 +8,7 @@ const adminController = require("../controllers/admin");
 const authController = require("../controllers/auth");
 const is_authAdmin_1 = __importDefault(require("../middleware/is-authAdmin"));
 const router = (0, express_1.Router)();
-// ***  API about the admin's role  *** //
+// ***  API about the admin's auth  *** //
 // POST /admin/create
 router.post('/create', is_authAdmin_1.default, adminController.createAdmin);
 // POST /admin/login

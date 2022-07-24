@@ -11,22 +11,24 @@ import User from '../models/user';
 
 export const createUser:RequestHandler = async (req, res, next) =>{
     try{
-        const errors = validationResult(req)                        //  store error ,if any , during route’s validation 
-        if(!errors.isEmpty()){							        // if error happens in route’s validation
-            const error:any = new Error('Validation Failed');	// set error message
-            error.statusCode = 422;						        // give error status code
-            error.data = errors.array();                  	    //keep error information from validationResult
+        const errors:any = validationResult(req)                        //  store error ,if any , during route’s validation 
+        if(!errors.isEmpty()){	                                        // if error happens in route’s validation
+            const error:any = new Error(errors.errors[0].msg);	        // set error message
+            error.statusCode = 422;						                // give error status code
+            error.data = errors.array();                  	            //keep error information from validationResult
             throw error;							
          }
 
         const email = req.body.email;
         const username = req.body.username;
+        const address = req.body.address;
         const password = req.body.password;
         const hashedPw = await bcrypt.hash(password,12);
 
         const newUser = new User ({
             username:username,
             email:email,
+            address:address,
             password:hashedPw
         })
         await newUser.save()
@@ -46,11 +48,11 @@ export const createUser:RequestHandler = async (req, res, next) =>{
 
 export const login:RequestHandler = async (req, res, next) =>{
     try {
-        const errors:any = validationResult(req)                    //  store error ,if any , during route’s validation 
-        if(!errors.isEmpty()){							        // if error happens in route’s validation
-            const error:any = new Error('Validation Failed');	// set error message
-            error.statusCode = 422;						        // give error status code
-            error.data = errors.array();                  	    //keep error information from validationResult
+        const errors:any = validationResult(req)                        //  store error ,if any , during route’s validation 
+        if(!errors.isEmpty()){							                // if error happens in route’s validation
+            const error:any = new Error(errors.errors[0].msg);	        // set error message
+            error.statusCode = 422;						                // give error status code
+            error.data = errors.array();                  	            //keep error information from validationResult
             throw error;							
          }
      
@@ -85,6 +87,7 @@ export const login:RequestHandler = async (req, res, next) =>{
             token:token,
             username: loadedUser.username,
             email: loadedUser.email,
+            address: loadedUser.address,
             message:"Login Successful"
         })
 
@@ -100,7 +103,7 @@ export const login:RequestHandler = async (req, res, next) =>{
 export const logout:RequestHandler = (req, res, next) =>{
   
     
-    //  SHOULD NOT CHECK IF JWT EXIST FOR LOGOUT. JUST LOGOUT
+    //  ** SHOULD NOT CHECK IF JWT EXIST FOR LOGOUT. JUST LOGOUT
     // if(!req.cookies.jwt){
     //     const error:any = new Error('No Token in Cookies');
     //     error.statusCode = 406;
@@ -124,7 +127,6 @@ export const logout:RequestHandler = (req, res, next) =>{
 }
 
 export const isLogin:RequestHandler = (req, res, next) =>{
-
     res.status(200).json({
         message:"Login Valid"
     })

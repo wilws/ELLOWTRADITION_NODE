@@ -13,7 +13,7 @@ interface cartObj {
 
 
 export const getProducts:RequestHandler = async (req, res, next) =>{
-    let totalItems:number;
+    // let totalItems:number;
     let root = `http://${req.headers.host}`;
  
     try {
@@ -96,7 +96,7 @@ export const getCart:RequestHandler = async(req,res, next) =>{
 
 
 export const updateCart:RequestHandler = async(req,res, next) =>{
-    
+
     if(!req.userId){
         res.status(200).json({
             message: 'User have not logged in. Cart details cannot be stored in Database',
@@ -109,6 +109,7 @@ export const updateCart:RequestHandler = async(req,res, next) =>{
             const error = new Error('No cart is received');
             throw error;
         } 
+
         let cart:cartObj[] = req.body.cart;
         const user = await User.findById(req.userId);
 
@@ -130,15 +131,23 @@ export const updateCart:RequestHandler = async(req,res, next) =>{
 
 
 
-// export const createInvoice:RequestHandler = (req, res, next) =>{
-
-// }
-
 export const checkout:RequestHandler = async (req, res, next) =>{
 
     console.log("enter to checkout ")
     const multiplier = 100;
-    const root = `http://${req.headers.host}`;
+    const protocol = req.protocol;
+    const root = req.headers.host;
+    const originURL = req.get('origin');
+
+
+    console.log("originURL: ", originURL);
+    const success_url = `${protocol}://${root}/checkout/success?originUrl=${originURL}`;
+    const cancel_url = `${protocol}://${root}/checkout/cancel?originUrl=${originURL}`;
+
+    console.log(success_url);
+    console.log(cancel_url);
+  
+    
 
     const user = await User.findById(req.userId).populate('cart.items.productId');   // Get cart details
     const cartItem = user.cart.items;  
@@ -162,12 +171,14 @@ export const checkout:RequestHandler = async (req, res, next) =>{
                 product_data:{
                     name: item.productId.name,
                     // description: item.productId.description ,
-                    images: [`${root}/image/${item.productId.imageUrl1}`]
+                    images: [`${protocol}://${root}/image/${item.productId.imageUrl1}`]
                 },
                 unit_amount_decimal:+item.productId.price * multiplier,
             }
         };
       })
+
+    
 
       // Add Shipping
       line_items.push({
@@ -191,13 +202,14 @@ export const checkout:RequestHandler = async (req, res, next) =>{
 
     try{
         const session = await stripe.checkout.sessions.create({
-            success_url: req.protocol + '://' + req.get('host') + '/checkout/success',
-            cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel',
+            success_url : success_url,
+            cancel_url : cancel_url ,
             line_items: line_items,
             mode: 'payment',
             customer_email:email,
            
         });
+
         
         res.status(200).json({
             message : "Session Created",
@@ -214,9 +226,9 @@ export const checkout:RequestHandler = async (req, res, next) =>{
 
 export const checkOutSuccess:RequestHandler = async (req,res,next) => {
 
-
+    const originURL = req.query.originUrl;                              // Get client side URL
     const user = await User.findById(req.userId).populate('cart.items.productId');   // Get cart details
-    const cartItem = user.cart.items;  
+    const cartItem = user.cart.items;
 
     const products:any = [];
     const tax_rates = 0.15;             // set tax rate
@@ -261,7 +273,7 @@ export const checkOutSuccess:RequestHandler = async (req,res,next) => {
             } else{
                 invoiceId = await invoice._id.toString();
                 await user.clearCart();
-                return res.redirect(`http://localhost:3000/invoice/${invoiceId}?checkout=true`);
+                return res.redirect(`${originURL}/invoice/${invoiceId}?checkout=true`);
             }
         })
          
@@ -274,7 +286,8 @@ export const checkOutSuccess:RequestHandler = async (req,res,next) => {
 }
 
 export const checkOutCancel:RequestHandler = (req,res,next) => {
-    res.redirect(`http://localhost:3000/cart?checkout=cancel`);
+    const originURL = req.query.originUrl
+    res.redirect(`${originURL}/cart?checkout=cancel`);
 }
 
 

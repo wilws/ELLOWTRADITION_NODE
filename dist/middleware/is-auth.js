@@ -8,6 +8,7 @@ const auth = (req, res, next) => {
     if (!req.cookies.jwt) {
         const error = new Error('Not authenticated');
         error.statusCode = 401;
+        error.message = "No Token is found";
         throw error;
     }
     const token = req.cookies.jwt;
@@ -17,12 +18,14 @@ const auth = (req, res, next) => {
     }
     catch (err) {
         const error = new Error('Token Invalid. May be expired');
-        err.statusCode = 401;
+        error.statusCode = 401;
+        error.message = "Token expired";
         throw error;
     }
     if (!decodedToken) {
         const error = new Error('Not authenticated.');
         error.statusCode = 401;
+        error.message = "Token verification failed";
         throw error;
     }
     req.userId = decodedToken.userId;

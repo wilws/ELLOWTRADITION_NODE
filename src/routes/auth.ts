@@ -4,13 +4,10 @@ import { body } from "express-validator";
 import isAuth from "../middleware/is-auth";
 import user from "../models/user";
 
-
-const authController = require( "../controllers/auth" );
-
-
+const authController = require( "../controllers/auth" );       // use middleware to auth 
 const router = Router();
 
-// POST /auth/signup
+// POST /auth/signup 
 router.post('/signup',[
     body('email')
     .normalizeEmail()
@@ -29,8 +26,10 @@ router.post('/signup',[
         
     body('password').trim().not().isEmpty().isLength({min:6,max:30}),
     body('username').trim().not().isEmpty().isLength({max:30}),
+    body('address').not().isEmpty().trim().isLength({max:250}).escape(),
 
 ],authController.createUser);
+
 
 // POST /auth/login
 router.post('/login',[
@@ -50,6 +49,7 @@ router.post('/login',[
         });
     })
 ], authController.login);
+
 
 // POST /auth/logout
 router.post('/logout', authController.logout);

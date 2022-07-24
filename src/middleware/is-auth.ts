@@ -13,6 +13,7 @@ const auth:RequestHandler = (req, res, next) =>{
     if (!req.cookies.jwt){
         const error:any = new Error('Not authenticated');
         error.statusCode = 401;
+        error.message = "No Token is found"
         throw error;
     }
 
@@ -23,13 +24,15 @@ const auth:RequestHandler = (req, res, next) =>{
         decodedToken = jwt.verify(token, 'Secret')
     }catch(err:any){
         const error:any = new Error('Token Invalid. May be expired');
-        err.statusCode = 401;
+        error.statusCode = 401;
+        error.message = "Token expired"
         throw error;
     }
 
     if(!decodedToken){
         const error:any = new Error('Not authenticated.');
         error.statusCode = 401;
+        error.message = "Token verification failed"
         throw error;
     }
 

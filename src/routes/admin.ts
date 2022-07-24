@@ -7,7 +7,7 @@ import isAuthAdmin from "../middleware/is-authAdmin";
 
 const router = Router();
 
-// ***  API about the admin's role  *** //
+// ***  API about the admin's auth  *** //
 
 // POST /admin/create
 router.post('/create',isAuthAdmin, adminController.createAdmin);
@@ -33,7 +33,6 @@ router.get('/get-products', isAuthAdmin, adminController.getProducts);
 
 // GET /admin/get-product/{productId}
 router.get('/get-product/:productId',isAuthAdmin,  adminController.getProduct);
-
 
 // PUT /admin/edit-product/{productId}
 router.put('/edit-product/:productId', isAuthAdmin, adminController.editProduct);

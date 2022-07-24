@@ -5,6 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const body_parser_1 = __importDefault(require("body-parser"));
 const mongoose_1 = __importDefault(require("mongoose"));
+// import multer from 'multer';
+// import fs from 'fs'
+// import path from 'path';
 const express_1 = __importDefault(require("express"));
 const admin_1 = __importDefault(require("./routes/admin"));
 const auth_1 = __importDefault(require("./routes/auth"));
@@ -27,16 +30,15 @@ app.use((req, res, next) => {
     next();
 });
 // set image path
-// app.use(express.static(path.join(__dirname, 'public')));
-app.use('/image', // point to ‘root/image’ folder
-express_1.default.static(__dirname + '/image'));
+app.use('/image', // The file directory in the app/    			
+express_1.default.static(__dirname + '/image') // when URL = root/image, point to the above directory
+);
 //  Routes 
 app.use('/', shop_1.default);
 app.use('/admin', admin_1.default);
 app.use('/auth', auth_1.default);
+// Global Error Handler 
 app.use((err, req, res, next) => {
-    console.log("Error Handling Middleware called");
-    console.log(err);
     const status = err.statusCode || 500;
     const message = err.message;
     const data = err.data;

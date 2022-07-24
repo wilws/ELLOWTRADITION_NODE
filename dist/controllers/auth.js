@@ -21,18 +21,20 @@ const createUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     try {
         const errors = (0, express_validator_1.validationResult)(req); //  store error ,if any , during route’s validation 
         if (!errors.isEmpty()) { // if error happens in route’s validation
-            const error = new Error('Validation Failed'); // set error message
+            const error = new Error(errors.errors[0].msg); // set error message
             error.statusCode = 422; // give error status code
             error.data = errors.array(); //keep error information from validationResult
             throw error;
         }
         const email = req.body.email;
         const username = req.body.username;
+        const address = req.body.address;
         const password = req.body.password;
         const hashedPw = yield bcryptjs_1.default.hash(password, 12);
         const newUser = new user_1.default({
             username: username,
             email: email,
+            address: address,
             password: hashedPw
         });
         yield newUser.save();
@@ -52,7 +54,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         const errors = (0, express_validator_1.validationResult)(req); //  store error ,if any , during route’s validation 
         if (!errors.isEmpty()) { // if error happens in route’s validation
-            const error = new Error('Validation Failed'); // set error message
+            const error = new Error(errors.errors[0].msg); // set error message
             error.statusCode = 422; // give error status code
             error.data = errors.array(); //keep error information from validationResult
             throw error;
@@ -80,6 +82,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             token: token,
             username: loadedUser.username,
             email: loadedUser.email,
+            address: loadedUser.address,
             message: "Login Successful"
         });
     }
@@ -92,7 +95,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
 });
 exports.login = login;
 const logout = (req, res, next) => {
-    //  SHOULD NOT CHECK IF JWT EXIST FOR LOGOUT. JUST LOGOUT
+    //  ** SHOULD NOT CHECK IF JWT EXIST FOR LOGOUT. JUST LOGOUT
     // if(!req.cookies.jwt){
     //     const error:any = new Error('No Token in Cookies');
     //     error.statusCode = 406;

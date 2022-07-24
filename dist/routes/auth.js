@@ -7,9 +7,9 @@ const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const is_auth_1 = __importDefault(require("../middleware/is-auth"));
 const user_1 = __importDefault(require("../models/user"));
-const authController = require("../controllers/auth");
+const authController = require("../controllers/auth"); // use middleware to auth 
 const router = (0, express_1.Router)();
-// POST /auth/signup
+// POST /auth/signup 
 router.post('/signup', [
     (0, express_validator_1.body)('email')
         .normalizeEmail()
@@ -27,6 +27,7 @@ router.post('/signup', [
     }),
     (0, express_validator_1.body)('password').trim().not().isEmpty().isLength({ min: 6, max: 30 }),
     (0, express_validator_1.body)('username').trim().not().isEmpty().isLength({ max: 30 }),
+    (0, express_validator_1.body)('address').not().isEmpty().trim().isLength({ max: 250 }).escape(),
 ], authController.createUser);
 // POST /auth/login
 router.post('/login', [

@@ -2,8 +2,8 @@
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 // import multer from 'multer';
-import fs from 'fs'
-import path from 'path';
+// import fs from 'fs'
+// import path from 'path';
 import express from "express";
 import adminRoute from "./routes/admin";
 import authRoute from "./routes/auth";
@@ -17,8 +17,6 @@ const app = express();
 // To parse json format transmission
 app.use(bodyParser.json())
 app.use(cookieParser());
-
-
 
 
 // For the access of RESTful API
@@ -35,13 +33,10 @@ app.use((req, res, next)=>{
 })
 
 // set image path
-// app.use(express.static(path.join(__dirname, 'public')));
 app.use(
-	'/image',                                  			// point to ‘root/image’ folder
-    express.static(__dirname + '/image')
+	'/image',                              // The file directory in the app/    			
+    express.static(__dirname + '/image')   // when URL = root/image, point to the above directory
 );
-
-
 
 //  Routes 
 app.use('/',shopRoute);
@@ -55,11 +50,9 @@ interface Error {
     data:any;
 }
 
-
+// Global Error Handler 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.log("Error Handling Middleware called")
-    console.log(err);
-    const status = err.statusCode || 500;
+    const status = err.statusCode || 500;                       
     const message = err.message;
     const data = err.data;
     res.status(status).json({ message: message, data: data });
