@@ -16,7 +16,8 @@ exports.getInvoices = exports.checkOutCancel = exports.checkOutSuccess = exports
 const product_1 = __importDefault(require("../models/product"));
 const user_1 = __importDefault(require("../models/user"));
 const order_1 = __importDefault(require("../models/order"));
-const stripe = require('stripe')('sk_test_KfraBA0PbL5kXuWLz0ac2CgD00pq5g0wA0');
+// const stripe = require('stripe')('sk_test_KfraBA0PbL5kXuWLz0ac2CgD00pq5g0wA0');
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     // let totalItems:number;
     let root = `http://${req.headers.host}`;
@@ -119,14 +120,11 @@ exports.updateCart = updateCart;
 const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("enter to checkout ");
     const multiplier = 100;
-    const protocol = req.protocol;
-    const root = req.headers.host;
-    const originURL = req.get('origin');
-    console.log("originURL: ", originURL);
+    const protocol = req.protocol; //get "https" or "http"
+    const root = req.headers.host; //get server domain eg: "abc.com"
+    const originURL = req.get('origin'); //get client domain eg: "http://clientside.com"
     const success_url = `${protocol}://${root}/checkout/success?originUrl=${originURL}`;
     const cancel_url = `${protocol}://${root}/checkout/cancel?originUrl=${originURL}`;
-    console.log(success_url);
-    console.log(cancel_url);
     const user = yield user_1.default.findById(req.userId).populate('cart.items.productId'); // Get cart details
     const cartItem = user.cart.items;
     const email = user.email; // get user email
@@ -145,7 +143,7 @@ const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                 product_data: {
                     name: item.productId.name,
                     // description: item.productId.description ,
-                    // images: [`${root}/image/${item.productId.imageUrl1}`]
+                    images: [`${protocol}://${root}/image/${item.productId.imageUrl1}`]
                 },
                 unit_amount_decimal: +item.productId.price * multiplier,
             }
@@ -173,8 +171,6 @@ const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
         const session = yield stripe.checkout.sessions.create({
             success_url: success_url,
             cancel_url: cancel_url,
-            // success_url: req.protocol + '://' + req.get('host') + '/checkout/success',
-            // cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel',
             line_items: line_items,
             mode: 'payment',
             customer_email: email,

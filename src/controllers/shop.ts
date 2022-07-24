@@ -3,7 +3,8 @@ import Product from '../models/product';
 import User from "../models/user";
 import Order from "../models/order";
 
-const stripe = require('stripe')('sk_test_KfraBA0PbL5kXuWLz0ac2CgD00pq5g0wA0');
+// const stripe = require('stripe')('sk_test_KfraBA0PbL5kXuWLz0ac2CgD00pq5g0wA0');
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 
 interface cartObj {
@@ -135,19 +136,12 @@ export const checkout:RequestHandler = async (req, res, next) =>{
 
     console.log("enter to checkout ")
     const multiplier = 100;
-    const protocol = req.protocol;
-    const root = req.headers.host;
-    const originURL = req.get('origin');
-
-
-    console.log("originURL: ", originURL);
+    const protocol = req.protocol;               //get "https" or "http"
+    const root = req.headers.host;               //get server domain eg: "abc.com"
+    const originURL = req.get('origin');         //get client domain eg: "http://clientside.com"
     const success_url = `${protocol}://${root}/checkout/success?originUrl=${originURL}`;
     const cancel_url = `${protocol}://${root}/checkout/cancel?originUrl=${originURL}`;
 
-    console.log(success_url);
-    console.log(cancel_url);
-  
-    
 
     const user = await User.findById(req.userId).populate('cart.items.productId');   // Get cart details
     const cartItem = user.cart.items;  

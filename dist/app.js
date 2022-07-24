@@ -45,9 +45,11 @@ app.use((err, req, res, next) => {
     res.status(status).json({ message: message, data: data });
 });
 // Connect Database
+const MONGODB_URL = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.mnfhs.mongodb.net/EllowTradition?retryWrites=true`;
 mongoose_1.default
-    .connect('mongodb+srv://Wil:123321@cluster0.mnfhs.mongodb.net/EllowTradition?retryWrites=true').then(result => {
-    app.listen(8080);
+    .connect(MONGODB_URL)
+    .then(result => {
+    app.listen(process.env.PORT || 8080);
 }).catch(err => {
     console.log(err);
 });

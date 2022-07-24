@@ -12,6 +12,7 @@ import cookieParser from "cookie-parser";
 import { NextFunction, Request, Response } from 'express';
 
 
+
 const app = express();
 
 // To parse json format transmission
@@ -60,14 +61,13 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 
 // Connect Database
+const MONGODB_URL = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.mnfhs.mongodb.net/EllowTradition?retryWrites=true`
 mongoose
-    .connect(
-        'mongodb+srv://Wil:123321@cluster0.mnfhs.mongodb.net/EllowTradition?retryWrites=true'
-    ).then(result =>{
-        app.listen(8080);
+    .connect(MONGODB_URL )
+    .then(result =>{
+        app.listen(process.env.PORT || 8080);
     }).catch(
         err =>{console.log(err)
     });
-
 
     
