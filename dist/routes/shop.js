@@ -14,11 +14,11 @@ router.get('/get-cart/', is_auth_1.default, shopController.getCart);
 // PUT / update-cart
 router.put('/update-cart/', is_auth_1.default, shopController.updateCart);
 // POST /checkout
-router.post('/checkout', is_auth_1.default, shopController.checkout);
+router.post('/checkout/', is_auth_1.default, shopController.checkout);
 // GET / checkout/success
-router.get('/checkout/success', is_auth_1.default, shopController.checkOutSuccess);
+router.get('/checkout/success', shopController.checkOutSuccess);
 // GET / checkout/cancel
-router.get('/checkout/cancel', is_auth_1.default, shopController.checkOutCancel);
+router.get('/checkout/cancel', shopController.checkOutCancel);
 // GET /create-invoice
 router.get('/get-invoices', is_auth_1.default, shopController.getInvoices);
 exports.default = router;

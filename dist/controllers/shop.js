@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getInvoices = exports.checkOutCancel = exports.checkOutSuccess = exports.checkout = exports.updateCart = exports.getCart = exports.getProduct = exports.getProducts = void 0;
+exports.getInvoices = exports.checkOutCancel = exports.checkOutSuccess = exports.checkout = exports.updateCart = exports.getCart = exports.getProducts = void 0;
 const product_1 = __importDefault(require("../models/product"));
 const user_1 = __importDefault(require("../models/user"));
 const order_1 = __importDefault(require("../models/order"));
@@ -47,24 +47,23 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getProducts = getProducts;
-const getProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const productId = req.params.productId;
-    try {
-        const product = yield product_1.default.findById(productId);
-        res.status(200).json({
-            message: `Fetch ${productId} successfully`,
-            product: product,
-            imgPath: req.headers.host,
-        });
-    }
-    catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
-    }
-});
-exports.getProduct = getProduct;
+// ** function not in use **
+// export const getProduct:RequestHandler = async(req, res, next) =>{
+//     const productId = req.params.productId;
+//     try{
+//         const product = await Product.findById(productId);
+//         res.status(200).json({
+//             message: `Fetch ${productId} successfully`,
+//             product:product,
+//             imgPath : req.headers.host,
+//         });
+//     } catch(err:any){
+//         if(!err.statusCode){
+//             err.statusCode = 500;
+//         }
+//         next(err);
+//     }
+// }
 const getCart = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.userId) {
         res.status(200).json({
@@ -118,13 +117,12 @@ const updateCart = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.updateCart = updateCart;
 const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("enter to checkout ");
     const multiplier = 100;
     const protocol = req.protocol; //get "https" or "http"
     const root = req.headers.host; //get server domain eg: "abc.com"
     const originURL = req.get('origin'); //get client domain eg: "http://clientside.com"
-    const success_url = `${protocol}://${root}/checkout/success?originUrl=${originURL}`;
-    const cancel_url = `${protocol}://${root}/checkout/cancel?originUrl=${originURL}`;
+    const success_url = `${protocol}://${root}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancel_url = `${protocol}://${root}/checkout/cancel`;
     const user = yield user_1.default.findById(req.userId).populate('cart.items.productId'); // Get cart details
     const cartItem = user.cart.items;
     const email = user.email; // get user email
@@ -189,9 +187,12 @@ const checkout = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.checkout = checkout;
 const checkOutSuccess = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const originURL = req.query.originUrl; // Get client side URL
-    const user = yield user_1.default.findById(req.userId).populate('cart.items.productId'); // Get cart details
+    const session = yield stripe.checkout.sessions.retrieve(req.query.session_id);
+    // const customer = await stripe.customers.retrieve(session.customer);
+    const email = session.customer_email;
+    const user = yield user_1.default.findOne({ email: email }).populate('cart.items.productId'); // Get cart details
     const cartItem = user.cart.items;
+    const originURL = process.env.Access_Control_Allow_Origin; // Get client side URL
     const products = [];
     const tax_rates = 0.15; // set tax rate
     const shipping_charge = 50; // set Shipping charge
@@ -244,7 +245,7 @@ const checkOutSuccess = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.checkOutSuccess = checkOutSuccess;
 const checkOutCancel = (req, res, next) => {
-    const originURL = req.query.originUrl;
+    const originURL = process.env.Access_Control_Allow_Origin;
     res.redirect(`${originURL}/cart?checkout=cancel`);
 };
 exports.checkOutCancel = checkOutCancel;

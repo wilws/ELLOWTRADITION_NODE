@@ -3,6 +3,7 @@ import Product from '../models/product';
 import User from "../models/user";
 import Order from "../models/order";
 
+
 // const stripe = require('stripe')('sk_test_KfraBA0PbL5kXuWLz0ac2CgD00pq5g0wA0');
 const stripe = require('stripe')(process.env.STRIPE_KEY);
 
@@ -46,24 +47,24 @@ export const getProducts:RequestHandler = async (req, res, next) =>{
 }
 
 
+// ** function not in use **
+// export const getProduct:RequestHandler = async(req, res, next) =>{
+//     const productId = req.params.productId;
 
-export const getProduct:RequestHandler = async(req, res, next) =>{
-    const productId = req.params.productId;
-
-    try{
-        const product = await Product.findById(productId);
-        res.status(200).json({
-            message: `Fetch ${productId} successfully`,
-            product:product,
-            imgPath : req.headers.host,
-        });
-    } catch(err:any){
-        if(!err.statusCode){
-            err.statusCode = 500;
-        }
-        next(err);
-    }
-}
+//     try{
+//         const product = await Product.findById(productId);
+//         res.status(200).json({
+//             message: `Fetch ${productId} successfully`,
+//             product:product,
+//             imgPath : req.headers.host,
+//         });
+//     } catch(err:any){
+//         if(!err.statusCode){
+//             err.statusCode = 500;
+//         }
+//         next(err);
+//     }
+// }
 
 
 export const getCart:RequestHandler = async(req,res, next) =>{
@@ -134,13 +135,12 @@ export const updateCart:RequestHandler = async(req,res, next) =>{
 
 export const checkout:RequestHandler = async (req, res, next) =>{
 
-    console.log("enter to checkout ")
     const multiplier = 100;
     const protocol = req.protocol;               //get "https" or "http"
     const root = req.headers.host;               //get server domain eg: "abc.com"
     const originURL = req.get('origin');         //get client domain eg: "http://clientside.com"
-    const success_url = `${protocol}://${root}/checkout/success?originUrl=${originURL}`;
-    const cancel_url = `${protocol}://${root}/checkout/cancel?originUrl=${originURL}`;
+    const success_url = `${protocol}://${root}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancel_url = `${protocol}://${root}/checkout/cancel`;
 
 
     const user = await User.findById(req.userId).populate('cart.items.productId');   // Get cart details
@@ -201,7 +201,6 @@ export const checkout:RequestHandler = async (req, res, next) =>{
             line_items: line_items,
             mode: 'payment',
             customer_email:email,
-           
         });
 
         
@@ -220,10 +219,13 @@ export const checkout:RequestHandler = async (req, res, next) =>{
 
 export const checkOutSuccess:RequestHandler = async (req,res,next) => {
 
-    const originURL = req.query.originUrl;                              // Get client side URL
-    const user = await User.findById(req.userId).populate('cart.items.productId');   // Get cart details
-    const cartItem = user.cart.items;
+    const session = await stripe.checkout.sessions.retrieve(req.query.session_id);
+    // const customer = await stripe.customers.retrieve(session.customer);
 
+    const email = session.customer_email;
+    const user:any = await User.findOne({email:email}).populate('cart.items.productId');   // Get cart details
+    const cartItem = user.cart.items;
+    const originURL = process.env.Access_Control_Allow_Origin;                                          // Get client side URL
     const products:any = [];
     const tax_rates = 0.15;             // set tax rate
     const shipping_charge = 50;         // set Shipping charge
@@ -280,7 +282,7 @@ export const checkOutSuccess:RequestHandler = async (req,res,next) => {
 }
 
 export const checkOutCancel:RequestHandler = (req,res,next) => {
-    const originURL = req.query.originUrl
+    const originURL = process.env.Access_Control_Allow_Origin; 
     res.redirect(`${originURL}/cart?checkout=cancel`);
 }
 

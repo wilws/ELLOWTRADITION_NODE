@@ -5,9 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
-const is_auth_1 = __importDefault(require("../middleware/is-auth"));
+// import isAuth from "../middleware/is-auth";
 const user_1 = __importDefault(require("../models/user"));
-const authController = require("../controllers/auth"); // use middleware to auth 
+const authController = require("../controllers/auth");
 const router = (0, express_1.Router)();
 // POST /auth/signup 
 router.post('/signup', [
@@ -50,7 +50,7 @@ router.post('/login', [
 // POST /auth/logout
 router.post('/logout', authController.logout);
 // POST /auth/is-login
-router.post('/is-login', is_auth_1.default, authController.isLogin);
+// router.post('/is-login', isAuth, authController.isLogin);
 // // POST /auth/reset
 // router.post('/rest', authController.reset);
 exports.default = router;

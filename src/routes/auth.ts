@@ -1,10 +1,10 @@
 
 import { Router } from "express";
 import { body } from "express-validator";
-import isAuth from "../middleware/is-auth";
+// import isAuth from "../middleware/is-auth";
 import user from "../models/user";
 
-const authController = require( "../controllers/auth" );       // use middleware to auth 
+const authController = require( "../controllers/auth" );       
 const router = Router();
 
 // POST /auth/signup 
@@ -55,7 +55,7 @@ router.post('/login',[
 router.post('/logout', authController.logout);
 
 // POST /auth/is-login
-router.post('/is-login', isAuth, authController.isLogin);
+// router.post('/is-login', isAuth, authController.isLogin);
 
 // // POST /auth/reset
 // router.post('/rest', authController.reset);
