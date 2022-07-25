@@ -18,8 +18,9 @@ const app = (0, express_1.default)();
 app.use(body_parser_1.default.json());
 app.use((0, cookie_parser_1.default)());
 // For the access of RESTful API
+const AllowOrigin = process.env.Access_Control_Allow_Origin;
 app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+    res.setHeader('Access-Control-Allow-Origin', AllowOrigin);
     // res.setHeader('Access-Control-Allow-Origin','*');
     res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');

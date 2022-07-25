@@ -77,7 +77,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             email: email,
             userId: loadedUser._id.toString()
         }, 'Secret', { expiresIn: '1h' });
-        res.cookie('jwt', token, { httpOnly: true, maxAge: 86400000 });
+        res.cookie('jwt', token, { httpOnly: true, maxAge: 8640000 });
         res.status(200).json({
             token: token,
             username: loadedUser.username,
