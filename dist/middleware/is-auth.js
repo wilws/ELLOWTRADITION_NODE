@@ -38,8 +38,11 @@ const auth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () 
         // Check 3 - Check if jwt valid.
         const secret = process.env.JWT_SECRET;
         let decodedToken;
+        console.log('verify jwt ');
         decodedToken = jsonwebtoken_1.default.verify(token, secret); // return true is the token valid
+        console.log(decodedToken);
         if (!decodedToken) {
+            console.log('!decodedToken');
             const error = new Error();
             error.statusCode = 401;
             error.message = "Token verification failed";
@@ -51,6 +54,10 @@ const auth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () 
     catch (err) {
         const error = err;
         error.statusCode = err.statusCode;
+        if (err.name == "TokenExpiredError") {
+            console.log('token expired ar');
+            error.statusCode = 401;
+        }
         error.message = err.message;
         next(error);
     }

@@ -40,9 +40,13 @@ const auth:RequestHandler = async (req, res, next) =>{
         // Check 3 - Check if jwt valid.
         const secret:any = process.env.JWT_SECRET;
         let decodedToken:any;
+        console.log('verify jwt ')
         decodedToken = jwt.verify(token, secret);    // return true is the token valid
         
+        console.log(decodedToken)
+        
         if(!decodedToken){
+            console.log('!decodedToken')
             const error:any = new Error();
             error.statusCode = 401;
             error.message = "Token verification failed"
@@ -56,6 +60,12 @@ const auth:RequestHandler = async (req, res, next) =>{
     } catch(err:any) {
         const error:any = err;
         error.statusCode = err.statusCode;
+        if (err.name == "TokenExpiredError"){
+            console.log('token expired ar')
+            error.statusCode = 401;
+        }
+ 
+
         error.message = err.message;
         next(error);
     }  
