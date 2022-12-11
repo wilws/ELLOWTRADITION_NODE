@@ -31,6 +31,7 @@ router.post('/signup',[
 ],authController.createUser);
 
 
+
 // POST /auth/login
 router.post('/login',[
     body('password').trim().not().isEmpty().isLength({min:6,max:30}),

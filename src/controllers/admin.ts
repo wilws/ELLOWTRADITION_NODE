@@ -8,6 +8,8 @@ import Product from '../models/product';
 import Admin from '../models/admin';
 
 export const addProduct:RequestHandler = async (req, res, next) => {
+
+    console.log('in create user');
     
     const imageUrl1 = "pic_path_1.jpg";
     const imageUrl2 = "pic_path_2.jpg";

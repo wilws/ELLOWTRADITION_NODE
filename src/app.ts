@@ -1,5 +1,6 @@
 
-import bodyParser from 'body-parser';
+// import bodyParser from 'body-parser';
+require("dotenv").config({ path: `${__dirname}/../.env` });
 import mongoose from 'mongoose';
 // import multer from 'multer';
 // import fs from 'fs'
@@ -11,14 +12,14 @@ import shopRoute from "./routes/shop";
 import cookieParser from "cookie-parser";
 import { NextFunction, Request, Response } from "express";
 
-require("dotenv").config({ path: `${__dirname}/../.env` });
+
 
 
 
 const app = express();
 
 // To parse json format transmission
-app.use(bodyParser.json())
+app.use(express.json())
 app.use(cookieParser());
 
 
@@ -42,6 +43,7 @@ app.use(
 );
 
 //  Routes 
+console.log('in app.js')
 app.use('/',shopRoute);
 app.use('/admin',adminRoute);
 app.use('/auth',authRoute);
