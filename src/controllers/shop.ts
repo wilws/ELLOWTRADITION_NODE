@@ -4,7 +4,6 @@ import User from "../models/user";
 import Order from "../models/order";
 
 
-// const stripe = require('stripe')('sk_test_KfraBA0PbL5kXuWLz0ac2CgD00pq5g0wA0');
 const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 

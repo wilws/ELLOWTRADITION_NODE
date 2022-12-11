@@ -9,7 +9,9 @@ import adminRoute from "./routes/admin";
 import authRoute from "./routes/auth";
 import shopRoute from "./routes/shop";
 import cookieParser from "cookie-parser";
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from "express";
+
+require("dotenv").config({ path: `${__dirname}/../.env` });
 
 
 
@@ -24,7 +26,6 @@ app.use(cookieParser());
 const AllowOrigin:any = process.env.Access_Control_Allow_Origin;
 app.use((req, res, next)=>{
     res.setHeader('Access-Control-Allow-Origin',AllowOrigin);
-    // res.setHeader('Access-Control-Allow-Origin','*');
     res.setHeader('Access-Control-Allow-Methods','OPTIONS, GET, POST, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -64,7 +65,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 // Connect Database
 const MONGODB_URL = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.mnfhs.mongodb.net/EllowTradition?retryWrites=true`
 mongoose
-    .connect(MONGODB_URL )
+    .connect(MONGODB_URL)
     .then(result =>{
         app.listen(process.env.PORT || 8080);
     }).catch(
