@@ -1,9 +1,0 @@
-
-{
-    "env": {
-        "MONGO_USER": "Wil",
-        "MONGO_PASSWORD":"123321",
-        "MONGO_DEFAULT_DATABASE":"EllowTradition",
-        "STRIPE_KEY":"sk_test_KfraBA0PbL5kXuWLz0ac2CgD00pq5g0wA0"
-    }
-}

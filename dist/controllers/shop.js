@@ -16,7 +16,6 @@ exports.getInvoices = exports.checkOutCancel = exports.checkOutSuccess = exports
 const product_1 = __importDefault(require("../models/product"));
 const user_1 = __importDefault(require("../models/user"));
 const order_1 = __importDefault(require("../models/order"));
-// const stripe = require('stripe')('sk_test_KfraBA0PbL5kXuWLz0ac2CgD00pq5g0wA0');
 const stripe = require('stripe')(process.env.STRIPE_KEY);
 const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     // let totalItems:number;

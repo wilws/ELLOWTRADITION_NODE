@@ -18,6 +18,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const product_1 = __importDefault(require("../models/product"));
 const admin_1 = __importDefault(require("../models/admin"));
 const addProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('in create user');
     const imageUrl1 = "pic_path_1.jpg";
     const imageUrl2 = "pic_path_2.jpg";
     const imageUrl3 = "pic_path_3.jpg";

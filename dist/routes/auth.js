@@ -10,25 +10,26 @@ const user_1 = __importDefault(require("../models/user"));
 const authController = require("../controllers/auth");
 const router = (0, express_1.Router)();
 // POST /auth/signup 
-router.post('/signup', [
-    (0, express_validator_1.body)('email')
-        .normalizeEmail()
-        .escape()
-        .notEmpty()
-        .withMessage('Email Should not be empty')
-        .isEmail()
-        .withMessage('Please enter a valid email')
-        .custom((value, { req }) => {
-        return user_1.default.findOne({ email: value }).then(user => {
-            if (user) {
-                return Promise.reject('E-mail is already in use');
-            }
-        });
-    }),
-    (0, express_validator_1.body)('password').trim().not().isEmpty().isLength({ min: 6, max: 30 }),
-    (0, express_validator_1.body)('username').trim().not().isEmpty().isLength({ max: 30 }),
-    (0, express_validator_1.body)('address').not().isEmpty().trim().isLength({ max: 250 }).escape(),
-], authController.createUser);
+// router.post('/signup',[
+//     body('email')
+//     .normalizeEmail()
+//         .escape()
+//         .notEmpty()
+//         .withMessage('Email Should not be empty')
+//         .isEmail()
+//         .withMessage('Please enter a valid email')
+//         .custom((value, {req})=>{
+//             return user.findOne({email:value}).then(user=>{
+//                 if(user){
+//                     return Promise.reject('E-mail is already in use')
+//                 }
+//             });
+//         }),
+//     body('password').trim().not().isEmpty().isLength({min:6,max:30}),
+//     body('username').trim().not().isEmpty().isLength({max:30}),
+//     body('address').not().isEmpty().trim().isLength({max:250}).escape(),
+// ],authController.createUser);
+router.post("/signup", authController.createUser);
 // POST /auth/login
 router.post('/login', [
     (0, express_validator_1.body)('password').trim().not().isEmpty().isLength({ min: 6, max: 30 }),
